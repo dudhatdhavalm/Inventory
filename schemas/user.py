@@ -5,10 +5,11 @@ from pydantic import BaseModel, EmailStr
 
 class UserBase(BaseModel):
     first_name: Optional[str] = None
-    last_name: int = 1
+    last_name: Optional[str] = None
     email: Optional[EmailStr] = None
     phone: Optional[str] = None
     status: int = 1
+    gender: Optional[str] = None
 
 
 class UserCreate(UserBase):

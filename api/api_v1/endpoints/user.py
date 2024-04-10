@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from typing import List, Any
-from schemas.user import UserDetails, UserOnly, UserCreate, UserInDBBase
+from models.user import User
+from schemas.user import UserDetails, UserOnly, UserCreate, UserInDBBase, UserUpdate
 from sqlalchemy.orm import Session
 from api import dependencies
 from sqlalchemy import func
@@ -35,27 +36,6 @@ def fetch_all_users(
     return users
 
 
-# @router.get("/search_by_city",status_code=200)
-# def search_by_city(
-#     *,
-#     city: str,
-#     db: Session = Depends(dependencies.get_db)
-# ):
-#     "search by city"
-#     user = crud.user.get_by_city(db=db,city=city)
-#     return user
-
-# @router.get("/search_by_skill",status_code=200)
-# def search_by_skill(
-#     *,
-#     skill: str,
-#     db: Session = Depends(dependencies.get_db)
-# ):
-#     "search by skill"
-#     user = crud.user.get_by_skill(db=db,skill=skill)
-#     return user
-
-
 @router.get("/{user_id}", status_code=200)
 def fetch_all_users(
     *,
@@ -71,14 +51,43 @@ def fetch_all_users(
     return user
 
 
-# @router.post("", status_code=200)
-# def add_user(
-#     *,
-#     user_in: UserCreate,
-#     db: Session = Depends(dependencies.get_db)
-# ) -> dict:
-#     user = crud.user.create(db=db, obj_in=user_in)
-#     return user
+@router.post("", status_code=200)
+def add_user(
+    *,
+    request: Request,
+    user_in: UserCreate,
+    db: Session = Depends(dependencies.get_db)
+) -> dict:
+    current_user: User = get_current_user(request)
+    is_super_admin = current_user.is_super_admin
+
+    if not is_super_admin:
+        raise HTTPException(status_code=404, detail=f"You can not add user")
+
+    user = crud.user.create(db=db, obj_in=user_in)
+    return user
+
+
+@router.put("/{user_id}", status_code=200, response_model=UserOnly)
+def update_user(
+    *,
+    request: Request,
+    user_id: int,
+    user_in: UserUpdate,
+    db: Session = Depends(dependencies.get_db),
+) -> dict:
+    """
+    Update User
+    """
+    current_user: User = get_current_user(request)
+    modified_by = current_user.id
+
+    result = crud.user.get(db=db, id=user_id)
+    user = crud.user.update(
+        db=db, db_obj=result, obj_in=user_in, modified_by=modified_by
+    )
+
+    return user
 
 
 @router.delete("/{user_id}", status_code=200)

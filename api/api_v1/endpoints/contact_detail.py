@@ -86,14 +86,8 @@ def update_contact_detail(
     current_user: User = get_current_user(request)
     modified_by = current_user.id
 
-    contact_detail_record = crud.contact_detail.get_by_id(db=db,id=contact_detail_id)
     contact_detail_record_id = crud.contact_detail.get_by_id(db=db,id=contact_detail_in.id)
- 
-    if not contact_detail_record:
-        raise HTTPException(
-            status_code=404, detail=f"Contact Detail not found with this id"
-        )
-    
+     
     if not contact_detail_record_id:
         raise HTTPException(
             status_code=404, detail=f"Contact Detail not found with this id"

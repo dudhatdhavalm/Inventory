@@ -44,23 +44,15 @@ class SupplierSearch(BaseModel):
     sortDesc: bool
 
 
-# class SupplierBankContactSchema(SupplierBase):
-#     id: int
-#     account_no: str
-#     branch: str
-#     IFSC_code: str
-#     bank: str
-#     contact_name: str
-#     mobile_number: str
-#     phone_number: str
-#     email: str
-#     pan_no: str
-#     gstin: str
-
 class SupplierBankContactSchema(SupplierBase):
     id: int
     account_no: str
     branch: str
     IFSC_code: str
     bank: str
-    
+    contact_name: str
+    mobile_number: Optional[str] = None
+    phone_number: str
+    email: str
+    pan_no: str
+    gstin: str

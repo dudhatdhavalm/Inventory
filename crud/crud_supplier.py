@@ -28,7 +28,7 @@ class CRUDSupplier(CRUDBase[Supplier, SupplierCreate, SupplierUpdate]):
     #     return obj
 
     def get_by_bank_contact_id(self, db: Session, *, id: int):
-        obj = db.query(Supplier.id,Supplier.name,Supplier.address,Supplier.city,Supplier.distance,Supplier.pincode,Supplier.station,Supplier.transport,BankDetail.IFSC_code,BankDetail.account_no,BankDetail.branch,BankDetail.bank,ContactDetail.contact_name,ContactDetail.mobile_number).join(BankDetail,BankDetail.supplier_id == Supplier.id).filter(
+        obj = db.query(Supplier.id,Supplier.name,Supplier.address,Supplier.city,Supplier.distance,Supplier.pincode,Supplier.station,Supplier.transport,BankDetail.IFSC_code,BankDetail.account_no,BankDetail.branch,BankDetail.bank,ContactDetail.contact_name,ContactDetail.mobile_number,ContactDetail.phone_number,ContactDetail.email,ContactDetail.pan_no,ContactDetail.gstin).join(BankDetail,BankDetail.supplier_id == Supplier.id).join(ContactDetail,ContactDetail.supplier_id == Supplier.id).filter(
                 Supplier.id == id
                 ).first()
         return obj

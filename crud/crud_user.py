@@ -12,16 +12,16 @@ ModelType = TypeVar("ModelType", bound=Base)
 
 class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
     def get(self, db: Session, id: Any) -> Optional[User]:
-        return db.query(User).filter(User.id == id).first()
+        return db.query(User).filter(User.id == id,User.status == 1).first()
 
     def get_not_admin(self, db: Session, id: Any) -> Optional[User]:
         return db.query(User).filter(User.id == id).first()
 
     def get_by_email(self, db: Session, *, email: str) -> Optional[User]:
-        return db.query(User).filter(func.lower(User.email) == email).first()
+        return db.query(User).filter(func.lower(User.email) == email,User.status == 1).first()
 
     def get_by_id(self, db: Session, *, id: int) -> Optional[User]:
-        return db.query(User).filter(User.id == id).first()
+        return db.query(User).filter(User.id == id,User.status == 1).first()
 
     def create(self, db: Session, *, obj_in: UserCreate, created_by=None) -> User:
         obj_in_data = jsonable_encoder(obj_in)
@@ -50,7 +50,7 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
     def get_all_user(
         self, db: Session, *, skip: int = 0, limit: int = 100
     ) -> List[User]:
-        return db.query(self.model).filter(self.model.status == 1).offset(skip).limit(limit).all()
+        return db.query(self.model).filter(User.status == 1).offset(skip).limit(limit).all()
 
     def get_none_admin_user(
         self, db: Session, *, skip: int = 0, limit: int = 100

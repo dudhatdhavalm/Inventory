@@ -92,13 +92,7 @@ def update_supplier(
     current_user: User = get_current_user(request)
     modified_by = current_user.id
 
-    supplier_record = crud.bank_detail.get_by_id(db=db, id=supplier_id)
-    supplier_record_id = crud.bank_detail.get_by_id(db=db, id=supplier_in.id)
-
-    if not supplier_record:
-        raise HTTPException(
-            status_code=404, detail=f"Supplier Detail not found with this id"
-        )
+    supplier_record_id = crud.supplier.get_by_id(db=db, id=supplier_in.id)
 
     if not supplier_record_id:
         raise HTTPException(

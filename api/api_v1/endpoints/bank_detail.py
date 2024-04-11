@@ -78,14 +78,8 @@ def update_bank_detail(
     current_user: User = get_current_user(request)
     modified_by = current_user.id
 
-    bank_detail_record = crud.bank_detail.get_by_id(db=db,id=bank_detail_id)
     bank_detail_record_id = crud.bank_detail.get_by_id(db=db,id=bank_detail_in.id)
- 
-    if not bank_detail_record:
-        raise HTTPException(
-            status_code=404, detail=f"Bank Detail not found with this id"
-        )
-    
+     
     if not bank_detail_record_id:
         raise HTTPException(
             status_code=404, detail=f"Bank Detail not found with this id"

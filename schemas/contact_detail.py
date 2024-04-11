@@ -32,7 +32,8 @@ class ContactDetailInDBBase(ContactDetailBase):
         orm_mode = True
 
 
-class ContactDetailOnly(ContactDetailInDBBase): ...
+class ContactDetailOnly(ContactDetailInDBBase): 
+    ...
 
 
 class ContactDetailSearch(BaseModel):

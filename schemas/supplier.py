@@ -46,13 +46,13 @@ class SupplierSearch(BaseModel):
 
 class SupplierBankContactSchema(SupplierBase):
     id: int
-    account_no: str
-    branch: str
-    IFSC_code: str
-    bank: str
-    contact_name: str
+    account_no: Optional[str] = None
+    branch: Optional[str] = None
+    IFSC_code: Optional[str] = None
+    bank: Optional[str] = None
+    contact_name: Optional[str] = None
     mobile_number: Optional[str] = None
-    phone_number: str
-    email: str
-    pan_no: str
-    gstin: str
+    phone_number: Optional[str] = None
+    email: Optional[str] = None
+    pan_no: Optional[str] = None
+    gstin: Optional[str] = None

@@ -13,6 +13,7 @@ class ContactDetailBase(BaseModel):
 
 
 class ContactDetailCreate(ContactDetailBase):
+    supplier_id: int
     class Config:
         orm_mode = True
 

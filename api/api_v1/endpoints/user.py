@@ -51,21 +51,21 @@ def fetch_all_users(
     return user
 
 
-@router.post("", status_code=200)
-def add_user(
-    *,
-    request: Request,
-    user_in: UserCreate,
-    db: Session = Depends(dependencies.get_db)
-) -> dict:
-    current_user: User = get_current_user(request)
-    is_super_admin = current_user.is_super_admin
+# @router.post("", status_code=200)
+# def add_user(
+#     *,
+#     request: Request,
+#     user_in: UserCreate,
+#     db: Session = Depends(dependencies.get_db)
+# ) -> dict:
+#     current_user: User = get_current_user(request)
+#     is_super_admin = current_user.is_super_admin
 
-    if not is_super_admin:
-        raise HTTPException(status_code=404, detail=f"You can not add user")
+#     if not is_super_admin:
+#         raise HTTPException(status_code=404, detail=f"You can not add user")
 
-    user = crud.user.create(db=db, obj_in=user_in)
-    return user
+#     user = crud.user.create(db=db, obj_in=user_in)
+#     return user
 
 
 @router.put("/{user_id}", status_code=200, response_model=UserOnly)

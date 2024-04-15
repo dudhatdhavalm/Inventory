@@ -28,11 +28,40 @@ class CRUDSupplier(CRUDBase[Supplier, SupplierCreate, SupplierUpdate]):
     #     return obj
 
     def get_by_bank_contact_id(self, db: Session, *, id: int):
-        obj = db.query(Supplier.id,Supplier.name,Supplier.address,Supplier.city,Supplier.distance,Supplier.pincode,Supplier.station,Supplier.transport,BankDetail.IFSC_code,BankDetail.account_no,BankDetail.branch,BankDetail.bank,ContactDetail.contact_name,ContactDetail.mobile_number,ContactDetail.phone_number,ContactDetail.email,ContactDetail.pan_no,ContactDetail.gstin).join(BankDetail,BankDetail.supplier_id == Supplier.id).join(ContactDetail,ContactDetail.supplier_id == Supplier.id).filter(
+        supplier_data = db.query(Supplier.id,Supplier.name,Supplier.address,Supplier.city,Supplier.distance,Supplier.pincode,Supplier.station,Supplier.transport).filter(
                 Supplier.id == id
                 ).first()
-        return obj
+        
+        bank_detail = bank_detail = db.query(BankDetail.IFSC_code,BankDetail.account_no,BankDetail.branch,BankDetail.bank).filter(
+                BankDetail.supplier_id == id
+                ).first()
 
+        contact_detail = contact_detail = db.query(ContactDetail.contact_name,ContactDetail.mobile_number,ContactDetail.phone_number,ContactDetail.email,ContactDetail.pan_no,ContactDetail.gstin).filter(
+                ContactDetail.supplier_id == id
+                ).first()
+                
+        supplier_dict = {
+            "id": supplier_data.id,
+            "name": supplier_data.name,
+            "address": supplier_data.address,
+            "city": supplier_data.city,
+            "distance": supplier_data.distance,
+            "pincode": supplier_data.pincode,
+            "station": supplier_data.station,
+            "transport": supplier_data.transport,
+            "account_no": bank_detail.account_no if bank_detail else None,
+            "branch": bank_detail.branch if bank_detail else None,
+            "IFSC_code": bank_detail.IFSC_code if bank_detail else None,
+            "bank": bank_detail.bank if bank_detail else None,
+            "contact_name": contact_detail.contact_name if contact_detail else None,
+            "mobile_number": contact_detail.mobile_number if contact_detail else None,
+            "phone_number": contact_detail.phone_number if contact_detail else None,
+            "email": contact_detail.email if contact_detail else None,
+            "pan_no": contact_detail.pan_no if contact_detail else None,
+            "gstin": contact_detail.gstin if contact_detail else None,
+        }
+
+        return supplier_dict
     
     def create(self, db: Session, *, obj_in: SupplierCreate, created_by=None) -> Supplier:
         obj_in_data = jsonable_encoder(obj_in)

@@ -21,7 +21,7 @@ app.add_middleware(CORSMiddleware,
                        '*'],
                    )
 
-app.mount("/static", StaticFiles(directory="./static"), name="static")
+# app.mount("/static", StaticFiles(directory="./static"), name="static")
 
 @root_router.get('/')
 def hello_world():

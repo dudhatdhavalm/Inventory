@@ -17,10 +17,10 @@ class CRUDBankDetail(CRUDBase[BankDetail, BankDetailCreate, BankDetailUpdate]):
         return db.query(BankDetail).filter(BankDetail.status == 1).offset(skip).limit(limit).all()
 
     def get_by_id(self, db: Session, *, id: int) -> Optional[BankDetail]:
-        return db.query(BankDetail).filter(BankDetail.id == id).first()
+        return db.query(BankDetail).filter(BankDetail.id == id,BankDetail.status == 1).first()
 
     def get_by_supplier_id(self, db: Session, *, id: int) -> Optional[BankDetail]:
-        return db.query(BankDetail).filter(BankDetail.supplier_id == id).first()
+        return db.query(BankDetail).filter(BankDetail.supplier_id == id,BankDetail.status == 1).first()
 
     def create(self, db: Session, *, obj_in: BankDetailCreate, created_by=None) -> BankDetail:
         obj_in_data = jsonable_encoder(obj_in)

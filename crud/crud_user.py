@@ -15,7 +15,7 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         return db.query(User).filter(User.id == id,User.status == 1).first()
 
     def get_not_admin(self, db: Session, id: Any) -> Optional[User]:
-        return db.query(User).filter(User.id == id).first()
+        return db.query(User).filter(User.id == id,User.status == 1,User.is_super_admin == False).first()
 
     def get_by_email(self, db: Session, *, email: str) -> Optional[User]:
         return db.query(User).filter(func.lower(User.email) == email,User.status == 1).first()

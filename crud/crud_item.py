@@ -10,9 +10,13 @@ ModelType = TypeVar("ModelType", bound=Base)
 
 
 class CRUDItem(CRUDBase[Item, ItemCreate, ItemUpdate]):
-    def get(self, db: Session, *, skip: int = 0, limit: int = 100) -> List[Item]:
-        return db.query(Item).filter(Item.status == 1).offset(skip).limit(limit).all()
-
+    def get(self, db: Session, *, skip: int = 0, limit: int = 100,name: str=None) -> List[Item]:
+        print(name)
+        if name is None:
+            return db.query(Item).filter(Item.status == 1).offset(skip).limit(limit).all()
+        else:
+            return db.query(Item).filter(Item.name.ilike(f"%{name}%"),Item.status == 1).offset(skip).limit(limit).all()
+            
     def get_by_id(self, db: Session, *, id: int) -> Optional[Item]:
         return db.query(Item).filter(Item.id == id, Item.status == 1).first()
 

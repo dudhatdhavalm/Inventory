@@ -110,7 +110,7 @@ def update_supplier(
 @router.delete("/{supplier_id}", status_code=200)
 def delete_supplier(
     *, supplier_id: int, db: Session = Depends(dependencies.get_db)
-) -> dict:
+):
     """
     Delete Supplier
     """

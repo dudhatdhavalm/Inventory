@@ -91,7 +91,7 @@ def update_user(
 
 
 @router.delete("/{user_id}", status_code=200)
-def delete_user(*, user_id: int, db: Session = Depends(dependencies.get_db)) -> dict:
+def delete_user(*, user_id: int, db: Session = Depends(dependencies.get_db)):
     """
     Delete User
     """

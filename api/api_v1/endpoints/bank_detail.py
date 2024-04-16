@@ -46,7 +46,7 @@ def fetch_by_supplier_id(
     db: Session = Depends(dependencies.get_db),
 ):
     """
-    Fetch contact detail by supplier id
+    Fetch bank detail by supplier id
     """
     bank_detail = crud.bank_detail.get_by_supplier_id(db=db, id=supplier_id)
     if not bank_detail:
@@ -96,7 +96,7 @@ def update_bank_detail(
 @router.delete("/{bank_detail_id}", status_code=200)
 def delete_bank_detail(
     *, bank_detail_id: int, db: Session = Depends(dependencies.get_db)
-) -> dict:
+):
     """
     Delete Bank Detail
     """

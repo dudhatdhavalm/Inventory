@@ -35,10 +35,15 @@ class ItemInDBBase(ItemBase):
         orm_mode = True
 
 
-class ItemOnly(ItemInDBBase): ...
+class ItemOnly(ItemInDBBase): 
+    ...
 
 
 class ItemSearch(BaseModel):
     startAt: int
     pageSize: int
     sortDesc: bool
+    name: Optional[str]
+
+class ItemSearchResults(ItemSearch):
+    items: List[ItemOnly] = []

@@ -104,7 +104,7 @@ def update_contact_detail(
 @router.delete("/{contact_detail_id}", status_code=200)
 def delete_contact_detail(
     *, contact_detail_id: int, db: Session = Depends(dependencies.get_db)
-) -> dict:
+):
     """
     Delete Contact Detail
     """

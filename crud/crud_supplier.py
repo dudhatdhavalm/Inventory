@@ -29,15 +29,15 @@ class CRUDSupplier(CRUDBase[Supplier, SupplierCreate, SupplierUpdate]):
 
     def get_by_bank_contact_id(self, db: Session, *, id: int):
         supplier_data = db.query(Supplier.id,Supplier.name,Supplier.address,Supplier.city,Supplier.distance,Supplier.pincode,Supplier.station,Supplier.transport).filter(
-                Supplier.id == id
+                Supplier.id == id,Supplier.status == 1
                 ).first()
         
         bank_detail = bank_detail = db.query(BankDetail.IFSC_code,BankDetail.account_no,BankDetail.branch,BankDetail.bank).filter(
-                BankDetail.supplier_id == id
+                BankDetail.supplier_id == id,BankDetail.status == 1
                 ).first()
 
         contact_detail = contact_detail = db.query(ContactDetail.contact_name,ContactDetail.mobile_number,ContactDetail.phone_number,ContactDetail.email,ContactDetail.pan_no,ContactDetail.gstin).filter(
-                ContactDetail.supplier_id == id
+                ContactDetail.supplier_id == id,ContactDetail.status == 1
                 ).first()
                 
         supplier_dict = {

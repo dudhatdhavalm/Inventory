@@ -1,11 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from typing import List, Any
 from models.user import User
-from schemas.item import (
-    ItemCreate,
-    ItemOnly,
-    ItemUpdate
-)
+from schemas.item import ItemCreate, ItemOnly, ItemSearch, ItemSearchResults, ItemUpdate
 from sqlalchemy.orm import Session
 from api import dependencies
 from sqlalchemy import func
@@ -13,6 +9,7 @@ import crud
 from util.user_util import get_current_user
 
 router = APIRouter()
+
 
 @router.get("", status_code=200)
 def fetch_all_item(
@@ -38,25 +35,33 @@ def fetch_item_id(
     item = crud.item.get_by_id(db=db, id=item_id)
 
     if not item:
-        raise HTTPException(
-            status_code=404, detail=f"Item with ID {item_id} not found"
-        )
+        raise HTTPException(status_code=404, detail=f"Item with ID {item_id} not found")
 
     return item
 
 
 @router.post("", status_code=200)
-def add_item(
-    *, item_in: ItemCreate, db: Session = Depends(dependencies.get_db)
-):
+def add_item(*, item_in: ItemCreate, db: Session = Depends(dependencies.get_db)):
     try:
         item = crud.item.create(db=db, obj_in=item_in)
         return item
 
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to create item: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to create item: {str(e)}")
+
+
+@router.post("/search", status_code=200)
+def search_item(
+    *,
+    name: str = None,
+    db: Session = Depends(dependencies.get_db),
+):
+    """
+    Search for item based on label keyword
+    """
+
+    item = crud.item.get(db=db, name=name)
+    return item
 
 
 @router.put("/{item_id}", status_code=200, response_model=ItemOnly)
@@ -88,9 +93,7 @@ def update_item(
 
 
 @router.delete("/{item_id}", status_code=200)
-def delete_item(
-    *, item_id: int, db: Session = Depends(dependencies.get_db)
-) -> dict:
+def delete_item(*, item_id: int, db: Session = Depends(dependencies.get_db)):
     """
     Delete Item
     """

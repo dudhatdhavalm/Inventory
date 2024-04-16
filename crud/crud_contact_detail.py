@@ -17,10 +17,10 @@ class CRUDContactDetail(CRUDBase[ContactDetail, ContactDetailCreate, ContactDeta
         return db.query(ContactDetail).filter(ContactDetail.status == 1).offset(skip).limit(limit).all()
 
     def get_by_id(self, db: Session, *, id: int) -> Optional[ContactDetail]:
-        return db.query(ContactDetail).filter(ContactDetail.id == id).first()
+        return db.query(ContactDetail).filter(ContactDetail.id == id,ContactDetail.status == 1).first()
 
     def get_by_supplier_id(self, db: Session, *, id: int) -> Optional[ContactDetail]:
-        return db.query(ContactDetail).filter(ContactDetail.supplier_id == id).first()
+        return db.query(ContactDetail).filter(ContactDetail.supplier_id == id,ContactDetail.status == 1).first()
 
     def create(self, db: Session, *, obj_in: ContactDetailCreate, created_by=None) -> ContactDetail:
         obj_in_data = jsonable_encoder(obj_in)

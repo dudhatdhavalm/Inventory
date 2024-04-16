@@ -8,3 +8,4 @@ from models.bank_detail import BankDetail
 from models.contact_detail import ContactDetail
 from models.item import Item
 from models.inward import Inward
+from models.outward import Outward

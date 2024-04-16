@@ -7,7 +7,7 @@ from sqlalchemy import (
 from db.base_class import Base
 
 
-class Inward(Base):
+class Outward(Base):
     id = Column(Integer, primary_key=True)
     date = Column(DateTime(timezone=True), nullable=False)
     rate = Column(Integer)

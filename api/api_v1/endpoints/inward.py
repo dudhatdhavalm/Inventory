@@ -57,20 +57,6 @@ def fetch_by_supplier_id(
     return inward
 
 
-
-@router.get("/", status_code=200)
-def fetch_by_type(
-    *,
-    type: str,
-    db: Session = Depends(dependencies.get_db),
-):
-    """
-    Fetch detail by type
-    """
-    inward = crud.inward.get_by_type(db=db, type=type)
-
-    return inward
-
 @router.post("", status_code=200)
 def add_inward(
     *, inward_in: InwardCreate, db: Session = Depends(dependencies.get_db)
@@ -116,9 +102,13 @@ def delete_inward(
     Delete inward
     """
     result = crud.inward.get_by_id(db=db, id=inward_id)
+    if not result:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Inward with ID {inward_id} not found",
+        )
     
-    print(result)
     result.status = 0
     db.commit()
 
-    return "inward Deleted successfully"
+    return "Inward Deleted successfully"

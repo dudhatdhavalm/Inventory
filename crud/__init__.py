@@ -4,3 +4,4 @@ from .crud_bank_detail import bank_detail
 from .crud_contact_detail import contact_detail
 from .crud_item import item
 from .crud_inward import inward
+from .crud_outward import outward

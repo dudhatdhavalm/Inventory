@@ -3,7 +3,7 @@ from typing import List, Optional
 from pydantic import BaseModel, EmailStr
 
 
-class InwardBase(BaseModel):
+class OutwardBase(BaseModel):
     date: Optional[datetime] = None
     rate: Optional[int] = None
     invoice_no: Optional[str] = None
@@ -14,32 +14,32 @@ class InwardBase(BaseModel):
     supplier_id: Optional[int] = None
     item_id: Optional[int] = None
 
-class InwardCreate(InwardBase):
+class OutwardCreate(OutwardBase):
     ...
 
     class Config:
         orm_mode = True
 
 
-class InwardUpdate(InwardBase):
+class OutwardUpdate(OutwardBase):
     id: int
 
 
-class InwardDelete(InwardBase):
+class OutwardDelete(OutwardBase):
     id: int
 
 
-class InwardInDBBase(InwardBase):
+class OutwardInDBBase(OutwardBase):
     id: Optional[int] = None
 
     class Config:
         orm_mode = True
 
 
-class InwardOnly(InwardInDBBase): ...
+class OutwardOnly(OutwardInDBBase): ...
 
 
-class InwardSearch(BaseModel):
+class OutwardSearch(BaseModel):
     startAt: int
     pageSize: int
     sortDesc: bool

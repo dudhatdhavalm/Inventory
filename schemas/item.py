@@ -7,7 +7,7 @@ class ItemBase(BaseModel):
     name: Optional[str] = None
     type: Optional[str] = None
     gst: Optional[str] = None
-    rate: Optional[str] = None
+    rate: Optional[int] = None
     unit: Optional[str] = None
     cost_rate: Optional[int] = None
     final_rate: Optional[int] = None

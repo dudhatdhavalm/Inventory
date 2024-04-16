@@ -62,7 +62,6 @@ class CRUDSupplier(CRUDBase[Supplier, SupplierCreate, SupplierUpdate]):
         }
 
         return supplier_dict
-
     
     def create(self, db: Session, *, obj_in: SupplierCreate, created_by=None) -> Supplier:
         obj_in_data = jsonable_encoder(obj_in)

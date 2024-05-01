@@ -2,6 +2,8 @@ from datetime import datetime
 from typing import List, Optional
 from pydantic import BaseModel, EmailStr
 
+from schemas.roles import RolesInDBBase, RolesOnly
+
 
 class UserBase(BaseModel):
     first_name: Optional[str] = None
@@ -24,7 +26,6 @@ class UserDetails(UserBase):
     class Config:
         orm_mode = True
 
-
 class UserUpdate(UserBase):
     id: int
 
@@ -39,7 +40,19 @@ class UserInDBBase(UserBase):
     class Config:
         orm_mode = True
 
+class User(UserInDBBase):
+    ...
+    roles: List[RolesOnly] = []
 
+class UserRoleAssignment(BaseModel):
+    role_id: int
+
+class UserRole(BaseModel):
+    roles: List[RolesInDBBase] = []
+
+    class Config:
+        orm_mode = True    
+        
 class UserOnly(UserInDBBase):
     ...
 

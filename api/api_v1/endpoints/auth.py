@@ -23,9 +23,9 @@ def login(login_schema: LoginSchema, db: Session = Depends(get_db)):
     if not is_password_valid:
         raise HTTPException(status_code=(status.HTTP_409_CONFLICT),
                             detail='Please check username and password.')
-    # if not user.is_active:
-    #     raise HTTPException(status_code=(status.HTTP_401_UNAUTHORIZED),
-    #                         detail='Your account is deactivated.')
+    if user.status == 0:
+        raise HTTPException(status_code=(status.HTTP_401_UNAUTHORIZED),
+                            detail='Your account is deleted.')
 
     # is_user_expired = user.expiry_date < date.today()
     # if is_user_expired:

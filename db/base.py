@@ -9,3 +9,6 @@ from models.contact_detail import ContactDetail
 from models.item import Item
 from models.inward import Inward
 from models.outward import Outward
+from models.roles import Roles
+from models.permission import Permission
+from models.role_permission import RolePermission

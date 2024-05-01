@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from typing import List, Any
+from core.permission_checker import PermissionChecker
 from models.user import User
 from sqlalchemy.orm import Session
 from api import dependencies
@@ -11,7 +12,9 @@ from util.user_util import get_current_user
 router = APIRouter()
 
 
-@router.get("", status_code=200)
+@router.get("", status_code=200,dependencies=[
+    Depends(PermissionChecker(permission="display_inward"))
+])
 def fetch_all_inward(
     *,
     db: Session = Depends(dependencies.get_db),
@@ -23,7 +26,9 @@ def fetch_all_inward(
     return inward
 
 
-@router.get("/{inward_id}", status_code=200)
+@router.get("/{inward_id}", status_code=200,dependencies=[
+    Depends(PermissionChecker(permission="display_inward"))
+])
 def fetch_inward_id(
     *,
     inward_id: int,
@@ -57,7 +62,9 @@ def fetch_by_supplier_id(
     return inward
 
 
-@router.post("", status_code=200)
+@router.post("", status_code=200,dependencies=[
+    Depends(PermissionChecker(permission="add_inward"))
+])
 def add_inward(
     *, inward_in: InwardCreate, db: Session = Depends(dependencies.get_db)
 ):
@@ -65,7 +72,9 @@ def add_inward(
     return inward
 
 
-@router.put("/{inward_id}", status_code=200, response_model=InwardOnly)
+@router.put("/{inward_id}", status_code=200, response_model=InwardOnly,dependencies=[
+    Depends(PermissionChecker(permission="update_inward"))
+])
 def update_inward(
     *,
     request: Request,
@@ -94,7 +103,9 @@ def update_inward(
     return inward
 
 
-@router.delete("/{inward_id}", status_code=200)
+@router.delete("/{inward_id}", status_code=200,dependencies=[
+    Depends(PermissionChecker(permission="delete_inward"))
+])
 def delete_inward(
     *, inward_id: int, db: Session = Depends(dependencies.get_db)
 ):

@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from typing import List, Any
+from core.permission_checker import PermissionChecker
 from models.user import User
 from schemas.bank_detail import BankDetailCreate, BankDetailOnly, BankDetailUpdate
 from sqlalchemy.orm import Session
@@ -11,7 +12,9 @@ from util.user_util import get_current_user
 router = APIRouter()
 
 
-@router.get("", status_code=200)
+@router.get("", status_code=200,dependencies=[
+    Depends(PermissionChecker(permission="display_bank_detail"))
+])
 def fetch_all_bank_detail(
     *,
     db: Session = Depends(dependencies.get_db),
@@ -23,7 +26,9 @@ def fetch_all_bank_detail(
     return bank_detail
 
 
-@router.get("/{bank_detail_id}", status_code=200)
+@router.get("/{bank_detail_id}", status_code=200,dependencies=[
+    Depends(PermissionChecker(permission="display_bank_detail"))
+])
 def fetch_bank_detail_id(
     *,
     bank_detail_id: int,
@@ -56,7 +61,9 @@ def fetch_by_supplier_id(
         )
     return bank_detail
 
-@router.post("", status_code=200)
+@router.post("", status_code=200,dependencies=[
+    Depends(PermissionChecker(permission="add_bank_detail"))
+])
 def add_bank_detail(
     *, bank_detail_in: BankDetailCreate, db: Session = Depends(dependencies.get_db)
 ):
@@ -64,7 +71,9 @@ def add_bank_detail(
     return bank_detail
 
 
-@router.put("/{bank_detail_id}", status_code=200, response_model=BankDetailOnly)
+@router.put("/{bank_detail_id}", status_code=200, response_model=BankDetailOnly,dependencies=[
+    Depends(PermissionChecker(permission="update_bank_detail"))
+])
 def update_bank_detail(
     *,
     request: Request,
@@ -93,7 +102,9 @@ def update_bank_detail(
     return bank_detail
 
 
-@router.delete("/{bank_detail_id}", status_code=200)
+@router.delete("/{bank_detail_id}", status_code=200,dependencies=[
+    Depends(PermissionChecker(permission="delete_bank_detail"))
+])
 def delete_bank_detail(
     *, bank_detail_id: int, db: Session = Depends(dependencies.get_db)
 ):
@@ -101,6 +112,11 @@ def delete_bank_detail(
     Delete Bank Detail
     """
     result = crud.bank_detail.get_by_id(db=db, id=bank_detail_id)
+    if not result:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Bank detail with id {bank_detail_id} not found",
+        )
     result.status = 0
     db.commit()
 

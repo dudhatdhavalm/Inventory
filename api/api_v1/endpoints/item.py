@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from typing import List, Any
+from core.permission_checker import PermissionChecker
 from models.user import User
 from schemas.item import ItemCreate, ItemOnly, ItemSearch, ItemSearchResults, ItemUpdate
 from sqlalchemy.orm import Session
@@ -11,7 +12,9 @@ from util.user_util import get_current_user
 router = APIRouter()
 
 
-@router.get("", status_code=200)
+@router.get("", status_code=200,dependencies=[
+    Depends(PermissionChecker(permission="read_item"))
+])
 def fetch_all_item(
     *,
     db: Session = Depends(dependencies.get_db),
@@ -23,7 +26,9 @@ def fetch_all_item(
     return item
 
 
-@router.get("/{item_id}", status_code=200)
+@router.get("/{item_id}", status_code=200,dependencies=[
+    Depends(PermissionChecker(permission="read_item"))
+])
 def fetch_item_id(
     *,
     item_id: int,
@@ -40,7 +45,9 @@ def fetch_item_id(
     return item
 
 
-@router.post("", status_code=200)
+@router.post("", status_code=200,dependencies=[
+    Depends(PermissionChecker(permission="read_item"))
+])
 def add_item(*, item_in: ItemCreate, db: Session = Depends(dependencies.get_db)):
     try:
         item = crud.item.create(db=db, obj_in=item_in)
@@ -64,7 +71,9 @@ def search_item(
     return item
 
 
-@router.put("/{item_id}", status_code=200, response_model=ItemOnly)
+@router.put("/{item_id}", status_code=200, response_model=ItemOnly,dependencies=[
+    Depends(PermissionChecker(permission="read_item"))
+])
 def update_item(
     *,
     request: Request,
@@ -92,12 +101,19 @@ def update_item(
     return res
 
 
-@router.delete("/{item_id}", status_code=200)
+@router.delete("/{item_id}", status_code=200,dependencies=[
+    Depends(PermissionChecker(permission="read_item"))
+])
 def delete_item(*, item_id: int, db: Session = Depends(dependencies.get_db)):
     """
     Delete Item
     """
     result = crud.item.get_by_id(db=db, id=item_id)
+    if not result:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Item with id {item_id} not found",
+        )
     result.status = 0
     db.commit()
 

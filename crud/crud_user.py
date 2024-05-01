@@ -4,9 +4,11 @@ from sqlalchemy.orm import Session
 from core.security import get_password_hash
 from sqlalchemy import func, or_
 from crud.base import CRUDBase
+from models.roles import Roles
 from models.user import User
 from db.base_class import Base
-from schemas.user import UserCreate, UserUpdate
+from schemas.user import User as UserSchema
+from schemas.user import UserCreate, UserRoleAssignment, UserUpdate
 ModelType = TypeVar("ModelType", bound=Base)
 
 
@@ -50,13 +52,26 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
     def get_all_user(
         self, db: Session, *, skip: int = 0, limit: int = 100
     ) -> List[User]:
-        return db.query(self.model).filter(User.status == 1).offset(skip).limit(limit).all()
+        if User.is_super_admin:
+            return db.query(self.model).offset(skip).limit(limit).all()
+        else:
+            return db.query(self.model).filter(User.status == 1).offset(skip).limit(limit).all()
 
     def get_none_admin_user(
         self, db: Session, *, skip: int = 0, limit: int = 100
     ) -> List[User]:
         return db.query(self.model).offset(skip).limit(limit).all()
 
+    def assign_role(self, db: Session, obj_in: UserRoleAssignment, user_id: int):
+        role_obj = db.query(Roles).filter(Roles.id == obj_in.role_id).first()
+        print(role_obj)
+        user_obj: UserSchema = db.query(User).filter(User.id == user_id).first()
+        user_obj.roles.append(role_obj)
+        db.add_all([user_obj])
+        db.commit()
+        db.refresh(user_obj)
+        return user_obj
+    
     # def get_multi_with_document(
     #     self, db: Session, skip: int = 0, limit: int = 100,
     # ) -> List[User]:

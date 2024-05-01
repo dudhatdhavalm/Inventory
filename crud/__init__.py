@@ -5,3 +5,6 @@ from .crud_contact_detail import contact_detail
 from .crud_item import item
 from .crud_inward import inward
 from .crud_outward import outward
+from .crud_permission import permission
+from .crud_roles import roles
+from .crud_role_permission import role_permission

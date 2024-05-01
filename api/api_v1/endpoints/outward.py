@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from typing import List, Any
+from core.permission_checker import PermissionChecker
 from models.user import User
 from sqlalchemy.orm import Session
 from api import dependencies
@@ -11,7 +12,9 @@ from util.user_util import get_current_user
 router = APIRouter()
 
 
-@router.get("", status_code=200)
+@router.get("", status_code=200,dependencies=[
+    Depends(PermissionChecker(permission="read_outward"))
+])
 def fetch_all_outward(
     *,
     db: Session = Depends(dependencies.get_db),
@@ -23,7 +26,9 @@ def fetch_all_outward(
     return outward
 
 
-@router.get("/{outward_id}", status_code=200)
+@router.get("/{outward_id}", status_code=200,dependencies=[
+    Depends(PermissionChecker(permission="read_outward"))
+])
 def fetch_outward_id(
     *,
     outward_id: int,
@@ -57,7 +62,9 @@ def fetch_by_supplier_id(
     return outward
 
 
-@router.post("", status_code=200)
+@router.post("", status_code=200,dependencies=[
+    Depends(PermissionChecker(permission="add_outward"))
+])
 def add_outward(
     *, outward_in: OutwardCreate, db: Session = Depends(dependencies.get_db)
 ):
@@ -65,7 +72,9 @@ def add_outward(
     return outward
 
 
-@router.put("/{outward_id}", status_code=200, response_model=OutwardOnly)
+@router.put("/{outward_id}", status_code=200, response_model=OutwardOnly,dependencies=[
+    Depends(PermissionChecker(permission="update_outward"))
+])
 def update_outward(
     *,
     request: Request,
@@ -94,7 +103,9 @@ def update_outward(
     return outward
 
 
-@router.delete("/{outward_id}", status_code=200)
+@router.delete("/{outward_id}", status_code=200,dependencies=[
+    Depends(PermissionChecker(permission="delete_outward"))
+])
 def delete_outward(
     *, outward_id: int, db: Session = Depends(dependencies.get_db)
 ):

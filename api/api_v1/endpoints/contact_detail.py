@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from typing import List, Any
+from core.permission_checker import PermissionChecker
 from models.user import User
 from schemas.contact_detail import (
     ContactDetailCreate,
@@ -15,7 +16,9 @@ from util.user_util import get_current_user
 router = APIRouter()
 
 
-@router.get("", status_code=200)
+@router.get("", status_code=200,dependencies=[
+    Depends(PermissionChecker(permission="display_contact_detail"))
+])
 def fetch_all_contact_detail(
     *,
     db: Session = Depends(dependencies.get_db),
@@ -27,7 +30,9 @@ def fetch_all_contact_detail(
     return contact_detail
 
 
-@router.get("/{contact_detail_id}", status_code=200)
+@router.get("/{contact_detail_id}", status_code=200,dependencies=[
+    Depends(PermissionChecker(permission="display_contact_detail"))
+])
 def fetch_contact_detail_id(
     *,
     contact_detail_id: int,
@@ -62,7 +67,9 @@ def fetch_by_supplier_id(
     return contact_detail
 
 
-@router.post("", status_code=200)
+@router.post("", status_code=200,dependencies=[
+    Depends(PermissionChecker(permission="add_contact_detail"))
+])
 def add_contact_detail(
     *,
     contact_detail_in: ContactDetailCreate,
@@ -72,7 +79,9 @@ def add_contact_detail(
     return contact_detail
 
 
-@router.put("/{contact_detail_id}", status_code=200, response_model=ContactDetailOnly)
+@router.put("/{contact_detail_id}", status_code=200, response_model=ContactDetailOnly,dependencies=[
+    Depends(PermissionChecker(permission="update_contact_detail"))
+])
 def update_contact_detail(
     *,
     request: Request,
@@ -101,7 +110,9 @@ def update_contact_detail(
     return contact_detail
 
 
-@router.delete("/{contact_detail_id}", status_code=200)
+@router.delete("/{contact_detail_id}", status_code=200,dependencies=[
+    Depends(PermissionChecker(permission="delete_contact_detail"))
+])
 def delete_contact_detail(
     *, contact_detail_id: int, db: Session = Depends(dependencies.get_db)
 ):
@@ -109,6 +120,11 @@ def delete_contact_detail(
     Delete Contact Detail
     """
     result = crud.contact_detail.get_by_id(db=db, id=contact_detail_id)
+    if not result:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Contact detail with id {contact_detail_id} not found",
+        )
     result.status = 0
     db.commit()
 

@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from typing import List, Any
+from core.permission_checker import PermissionChecker
 from models.user import User
 from schemas.supplier import (
     SupplierBankContactSchema,
@@ -16,7 +17,9 @@ from util.user_util import get_current_user
 router = APIRouter()
 
 
-@router.get("", status_code=200)
+@router.get("", status_code=200,dependencies=[
+    Depends(PermissionChecker(permission="read_supplier"))
+])
 def fetch_all_supplier(
     *,
     db: Session = Depends(dependencies.get_db),
@@ -28,7 +31,9 @@ def fetch_all_supplier(
     return supplier
 
 
-@router.get("/{supplier_id}", status_code=200, response_model=SupplierBankContactSchema)
+@router.get("/{supplier_id}", status_code=200, response_model=SupplierBankContactSchema,dependencies=[
+    Depends(PermissionChecker(permission="read_supplier"))
+])
 def fetch_supplier_id(
     *,
     supplier_id: int,
@@ -41,7 +46,7 @@ def fetch_supplier_id(
 
     if not supplier:
         raise HTTPException(
-            status_code=404, detail=f"Supplier with ID {supplier_id} not found"
+            status_code=404, detail=f"Supplier with id {supplier_id} not found"
         )
 
     return supplier
@@ -64,7 +69,9 @@ def fetch_supplier_id(
 #     return supplier
 
 
-@router.post("", status_code=200)
+@router.post("", status_code=200,dependencies=[
+    Depends(PermissionChecker(permission="add_supplier"))
+])
 def add_supplier(
     *, supplier_in: SupplierCreate, db: Session = Depends(dependencies.get_db)
 ):
@@ -78,7 +85,9 @@ def add_supplier(
         )
 
 
-@router.put("/{supplier_id}", status_code=200, response_model=SupplierOnly)
+@router.put("/{supplier_id}", status_code=200, response_model=SupplierOnly,dependencies=[
+    Depends(PermissionChecker(permission="update_supplier"))
+])
 def update_supplier(
     *,
     request: Request,
@@ -107,15 +116,19 @@ def update_supplier(
     return supplier
 
 
-@router.delete("/{supplier_id}", status_code=200)
-def delete_supplier(
-    *, supplier_id: int, db: Session = Depends(dependencies.get_db)
-):
+@router.delete("/{supplier_id}", status_code=200,dependencies=[
+    Depends(PermissionChecker(permission="delete_supplier"))
+])
+def delete_supplier(*, supplier_id: int, db: Session = Depends(dependencies.get_db)):
     """
     Delete Supplier
     """
     result = crud.supplier.get_by_id(db=db, id=supplier_id)
+    if not result:
+        raise HTTPException(
+            status_code=404, detail=f"Supplier with id {supplier_id} not found"
+        )
     result.status = 0
     db.commit()
 
-    return "Supplier Deleted successfully"
+    return "Supplier Deleted Successfully"

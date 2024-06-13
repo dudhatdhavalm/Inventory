@@ -10,7 +10,11 @@ from middlewares.auth_middleware import AuthMiddleWare
 root_router = APIRouter()
 app = FastAPI()
 
-origins = ["http://localhost:3000", "http://localhost:3001"]
+origins = [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://193.203.161.156:85",
+]
 
 app.add_middleware(AuthMiddleWare)
 app.add_middleware(
@@ -21,9 +25,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @root_router.get("/")
 def hello_world():
-    return {'message': 'Hello World!'}
+    return {"message": "Hello World!"}
 
 
 app.include_router((api_v1.route_v1))

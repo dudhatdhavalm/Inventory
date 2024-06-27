@@ -14,6 +14,7 @@ origins = [
     "http://localhost:3000",
     "http://localhost:3001",
     "http://193.203.161.156:85",
+    "https://d2webtech.com/"
 ]
 
 app.add_middleware(AuthMiddleWare)

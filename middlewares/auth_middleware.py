@@ -10,6 +10,10 @@ from services.user_service import decode_access_token, get_user_by_email_active
 
 class AuthMiddleWare(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
+
+        if request.method == "OPTIONS":
+            return await call_next(request)
+
         if is_unauthorized_url(request):
             return await call_next(request)
 

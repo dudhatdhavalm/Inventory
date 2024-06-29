@@ -17,7 +17,6 @@ origins = [
     "http://193.203.161.156:85",
 ]
 
-app.add_middleware(AuthMiddleWare)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -25,7 +24,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
+app.add_middleware(AuthMiddleWare)
 
 @root_router.get("/")
 def hello_world():

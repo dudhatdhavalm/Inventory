@@ -12,19 +12,17 @@ app = FastAPI()
 
 origins = [
     "https://d2webtech.com:85",
-    "http://localhost:3000",
-    "http://localhost:3001",
-    "http://193.203.161.156:85",
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 app.add_middleware(AuthMiddleWare)
+
 
 @root_router.get("/")
 def hello_world():

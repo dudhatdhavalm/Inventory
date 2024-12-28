@@ -12,6 +12,9 @@ class ItemBase(BaseModel):
     cost_rate: Optional[int] = None
     final_rate: Optional[int] = None
 
+    class Config:
+        orm_mode = True
+
 
 class ItemCreate(ItemBase):
     ...

@@ -12,9 +12,11 @@ from util.user_util import get_current_user
 router = APIRouter()
 
 
-@router.get("", status_code=200,dependencies=[
-    Depends(PermissionChecker(permission="read_outward"))
-])
+@router.get(
+    "",
+    status_code=200,
+    dependencies=[Depends(PermissionChecker(permission="read_outward"))],
+)
 def fetch_all_outward(
     *,
     db: Session = Depends(dependencies.get_db),
@@ -26,9 +28,11 @@ def fetch_all_outward(
     return outward
 
 
-@router.get("/{outward_id}", status_code=200,dependencies=[
-    Depends(PermissionChecker(permission="read_outward"))
-])
+@router.get(
+    "/{outward_id}",
+    status_code=200,
+    dependencies=[Depends(PermissionChecker(permission="read_outward"))],
+)
 def fetch_outward_id(
     *,
     outward_id: int,
@@ -43,6 +47,7 @@ def fetch_outward_id(
             status_code=404, detail=f"Outward with ID {outward_id} not found"
         )
     return outward
+
 
 @router.get("/{supplier_id}/supplier", status_code=200)
 def fetch_by_supplier_id(
@@ -62,19 +67,27 @@ def fetch_by_supplier_id(
     return outward
 
 
-@router.post("", status_code=200,dependencies=[
-    Depends(PermissionChecker(permission="add_outward"))
-])
+@router.post(
+    "",
+    status_code=200,
+    dependencies=[Depends(PermissionChecker(permission="add_outward"))],
+)
 def add_outward(
     *, outward_in: OutwardCreate, db: Session = Depends(dependencies.get_db)
 ):
-    outward = crud.outward.create(db=db, obj_in=outward_in)
-    return outward
+    try:
+        outward = crud.outward.create(db=db, obj_in=outward_in, items=outward_in.items)
+        return outward
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.put("/{outward_id}", status_code=200, response_model=OutwardOnly,dependencies=[
-    Depends(PermissionChecker(permission="update_outward"))
-])
+@router.put(
+    "/{outward_id}",
+    status_code=200,
+    response_model=OutwardOnly,
+    dependencies=[Depends(PermissionChecker(permission="update_outward"))],
+)
 def update_outward(
     *,
     request: Request,
@@ -88,12 +101,10 @@ def update_outward(
     current_user: User = get_current_user(request)
     modified_by = current_user.id
 
-    outward_record = crud.outward.get_by_id(db=db,id=outward_in.id)
-     
-    if not outward_record :
-        raise HTTPException(
-            status_code=404, detail=f"Outward not found with this id"
-        )
+    outward_record = crud.outward.get_by_id(db=db, id=outward_in.id)
+
+    if not outward_record:
+        raise HTTPException(status_code=404, detail=f"Outward not found with this id")
 
     result = crud.outward.get_by_id(db=db, id=outward_id)
     outward = crud.outward.update(
@@ -103,12 +114,12 @@ def update_outward(
     return outward
 
 
-@router.delete("/{outward_id}", status_code=200,dependencies=[
-    Depends(PermissionChecker(permission="delete_outward"))
-])
-def delete_outward(
-    *, outward_id: int, db: Session = Depends(dependencies.get_db)
-):
+@router.delete(
+    "/{outward_id}",
+    status_code=200,
+    dependencies=[Depends(PermissionChecker(permission="delete_outward"))],
+)
+def delete_outward(*, outward_id: int, db: Session = Depends(dependencies.get_db)):
     """
     Delete outward
     """

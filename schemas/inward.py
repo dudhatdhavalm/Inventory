@@ -1,21 +1,33 @@
 from datetime import datetime
 from typing import List, Optional
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
+from schemas.item import ItemBase
 
 
 class InwardBase(BaseModel):
     date: Optional[datetime] = None
-    rate: Optional[int] = None
     invoice_no: Optional[str] = None
-    quantity: Optional[int] = None
-    grand_total: Optional[int] = None
     challan_no: Optional[str] = None
     gst_no: Optional[str] = None
     supplier_id: Optional[int] = None
-    item_id: Optional[int] = None
+
+    class Config:
+        orm_mode = True
+
+
+class InwardItemBase(BaseModel):
+    item_id: int
+    name: str
+    quantity: int
+    unit: str
+    rate: int
+
+    class Config:
+        orm_mode = True
+
 
 class InwardCreate(InwardBase):
-    ...
+    items: List[InwardItemBase]
 
     class Config:
         orm_mode = True

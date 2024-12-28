@@ -12,9 +12,11 @@ from util.user_util import get_current_user
 router = APIRouter()
 
 
-@router.get("", status_code=200,dependencies=[
-    Depends(PermissionChecker(permission="display_inward"))
-])
+@router.get(
+    "",
+    status_code=200,
+    dependencies=[Depends(PermissionChecker(permission="display_inward"))],
+)
 def fetch_all_inward(
     *,
     db: Session = Depends(dependencies.get_db),
@@ -26,9 +28,11 @@ def fetch_all_inward(
     return inward
 
 
-@router.get("/{inward_id}", status_code=200,dependencies=[
-    Depends(PermissionChecker(permission="display_inward"))
-])
+@router.get(
+    "/{inward_id}",
+    status_code=200,
+    dependencies=[Depends(PermissionChecker(permission="display_inward"))],
+)
 def fetch_inward_id(
     *,
     inward_id: int,
@@ -43,6 +47,7 @@ def fetch_inward_id(
             status_code=404, detail=f"Inward with ID {inward_id} not found"
         )
     return inward
+
 
 @router.get("/{supplier_id}/supplier", status_code=200)
 def fetch_by_supplier_id(
@@ -62,19 +67,27 @@ def fetch_by_supplier_id(
     return inward
 
 
-@router.post("", status_code=200,dependencies=[
-    Depends(PermissionChecker(permission="add_inward"))
-])
-def add_inward(
-    *, inward_in: InwardCreate, db: Session = Depends(dependencies.get_db)
-):
-    inward = crud.inward.create(db=db, obj_in=inward_in)
-    return inward
+@router.post(
+    "",
+    status_code=200,
+    dependencies=[Depends(PermissionChecker(permission="add_inward"))],
+)
+def add_inward(*, inward_in: InwardCreate, db: Session = Depends(dependencies.get_db)):
+    try:
+        inward = crud.inward.create(
+            db=db, obj_in=inward_in, items=inward_in.items
+        )
+        return inward
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.put("/{inward_id}", status_code=200, response_model=InwardOnly,dependencies=[
-    Depends(PermissionChecker(permission="update_inward"))
-])
+@router.put(
+    "/{inward_id}",
+    status_code=200,
+    response_model=InwardOnly,
+    dependencies=[Depends(PermissionChecker(permission="update_inward"))],
+)
 def update_inward(
     *,
     request: Request,
@@ -88,12 +101,10 @@ def update_inward(
     current_user: User = get_current_user(request)
     modified_by = current_user.id
 
-    inward_record = crud.inward.get_by_id(db=db,id=inward_in.id)
-     
-    if not inward_record :
-        raise HTTPException(
-            status_code=404, detail=f"Inward not found with this id"
-        )
+    inward_record = crud.inward.get_by_id(db=db, id=inward_in.id)
+
+    if not inward_record:
+        raise HTTPException(status_code=404, detail=f"Inward not found with this id")
 
     result = crud.inward.get_by_id(db=db, id=inward_id)
     inward = crud.inward.update(
@@ -103,12 +114,12 @@ def update_inward(
     return inward
 
 
-@router.delete("/{inward_id}", status_code=200,dependencies=[
-    Depends(PermissionChecker(permission="delete_inward"))
-])
-def delete_inward(
-    *, inward_id: int, db: Session = Depends(dependencies.get_db)
-):
+@router.delete(
+    "/{inward_id}",
+    status_code=200,
+    dependencies=[Depends(PermissionChecker(permission="delete_inward"))],
+)
+def delete_inward(*, inward_id: int, db: Session = Depends(dependencies.get_db)):
     """
     Delete inward
     """
@@ -118,7 +129,7 @@ def delete_inward(
             status_code=404,
             detail=f"Inward with ID {inward_id} not found",
         )
-    
+
     result.status = 0
     db.commit()
 

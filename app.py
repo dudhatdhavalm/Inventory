@@ -11,7 +11,7 @@ root_router = APIRouter()
 app = FastAPI()
 
 origins = [
-    "https://d2webtech.com:85",
+    "https://localhost:3000",
 ]
 
 app.add_middleware(

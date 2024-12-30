@@ -34,7 +34,7 @@ class InwardCreate(InwardBase):
 
 
 class InwardUpdate(InwardBase):
-    id: int
+    items: List[InwardItemBase]
 
 
 class InwardDelete(InwardBase):

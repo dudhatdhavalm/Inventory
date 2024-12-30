@@ -1,5 +1,5 @@
 from typing import Any, Dict, List, Optional, Union, TypeVar
-from fastapi.encoders import jsonable_encoder
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from crud.base import CRUDBase
 from models.outward import Outward, OutwardItem
@@ -78,17 +78,55 @@ class CRUDOutward(CRUDBase[Outward, OutwardCreate, OutwardUpdate]):
         self,
         db: Session,
         *,
-        db_obj: Outward,
-        obj_in: Union[Outward, Dict[str, Any]],
-        modified_by=None
+        outward_id: int,
+        obj_in: OutwardUpdate,
+        items: List[OutwardItem],  # Here you expect items to be a list from the body
     ) -> Outward:
-        if isinstance(obj_in, dict):
-            update_data = obj_in
-        else:
-            update_data = obj_in.dict(exclude_unset=True)
-        return super().update(
-            db, db_obj=db_obj, obj_in=update_data, modified_by=modified_by
-        )
+        outward_data = db.query(Outward).filter(Outward.id == outward_id).first()
+        if not outward_data:
+            raise HTTPException(status_code=404, detail="Outward not found")
+
+        # Update the main outward record fields
+        outward_data.date = obj_in.date
+        outward_data.invoice_no = obj_in.invoice_no
+        outward_data.challan_no = obj_in.challan_no
+        outward_data.gst_no = obj_in.gst_no
+        outward_data.supplier_id = obj_in.supplier_id
+
+        db.commit()
+        db.refresh(outward_data)
+
+        # Delete old outward items associated with this outward_id
+        db.query(OutwardItem).filter(OutwardItem.outward_id == outward_id).delete()
+        db.commit()
+
+        total_amount = 0
+        outward_items = []
+
+        # Add new outward items
+        for item in items:
+            total_price = item.rate * item.quantity
+            total_amount += total_price
+
+            outward_item = OutwardItem(
+                outward_id=outward_data.id,
+                item_id=item.item_id,
+                name=item.name,
+                quantity=item.quantity,
+                unit=item.unit,
+                rate=item.rate,
+                total_price=total_price,
+            )
+            outward_items.append(outward_item)
+
+        db.add_all(outward_items)
+        db.commit()
+
+        # Update the grand total for outward
+        outward_data.grand_total = total_amount
+        db.commit()
+
+        return outward_data
 
 
 outward = CRUDOutward(Outward)

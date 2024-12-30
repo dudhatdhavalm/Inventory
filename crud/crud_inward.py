@@ -1,5 +1,5 @@
 from typing import Any, Dict, List, Optional, Union, TypeVar
-from fastapi.encoders import jsonable_encoder
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import func, or_
 from crud.base import CRUDBase
@@ -50,11 +50,11 @@ class CRUDInward(CRUDBase[Inward, InwardCreate, InwardUpdate]):
         db.commit()
         db.refresh(inward_data)
 
-        total_amount = 0 
+        total_amount = 0
         inward_items = []
 
         for item in items:
-            total_price = item.rate * item.quantity 
+            total_price = item.rate * item.quantity
             total_amount += total_price
 
             inward_item = InwardItem(
@@ -71,7 +71,7 @@ class CRUDInward(CRUDBase[Inward, InwardCreate, InwardUpdate]):
         db.add_all(inward_items)
         db.commit()
 
-        inward_data.grand_total = total_amount 
+        inward_data.grand_total = total_amount
         db.commit()
 
         return inward_data
@@ -80,17 +80,88 @@ class CRUDInward(CRUDBase[Inward, InwardCreate, InwardUpdate]):
         self,
         db: Session,
         *,
-        db_obj: Inward,
-        obj_in: Union[Inward, Dict[str, Any]],
-        modified_by=None,
+        inward_id: int,
+        obj_in: InwardCreate,
+        items: List[InwardItem],
     ) -> Inward:
-        if isinstance(obj_in, dict):
-            update_data = obj_in
-        else:
-            update_data = obj_in.dict(exclude_unset=True)
-        return super().update(
-            db, db_obj=db_obj, obj_in=update_data, modified_by=modified_by
+        inward_data = db.query(Inward).filter(Inward.id == inward_id).first()
+        if not inward_data:
+            raise HTTPException(status_code=404, detail="Inward not found")
+
+        inward_data.date = obj_in.date
+        inward_data.invoice_no = obj_in.invoice_no
+        inward_data.challan_no = obj_in.challan_no
+        inward_data.gst_no = obj_in.gst_no
+        inward_data.supplier_id = obj_in.supplier_id
+
+        db.commit()
+        db.refresh(inward_data)
+
+        db.query(InwardItem).filter(InwardItem.inward_id == inward_id).delete()
+        db.commit()
+
+        total_amount = 0
+        inward_items = []
+
+        for item in items:
+            total_price = item.rate * item.quantity
+            total_amount += total_price
+
+            inward_item = InwardItem(
+                inward_id=inward_data.id,
+                item_id=item.item_id,
+                name=item.name,
+                quantity=item.quantity,
+                unit=item.unit,
+                rate=item.rate,
+                total_price=total_price,
+            )
+            inward_items.append(inward_item)
+
+        db.add_all(inward_items)
+        db.commit()
+
+        inward_data.grand_total = total_amount
+        db.commit()
+
+        return inward_data
+
+    def get_items_by_supplier_id(self, db: Session, supplier_id: int) -> List[Dict]:
+        inward_records = (
+            db.query(Inward).filter(Inward.supplier_id == supplier_id).all()
         )
+        if not inward_records:
+            return []
+
+        inward_ids = [record.id for record in inward_records]
+
+        inward_items = (
+            db.query(InwardItem).filter(InwardItem.inward_id.in_(inward_ids)).all()
+        )
+        if not inward_items:
+            return []
+
+        item_ids = [item.item_id for item in inward_items]
+
+        items = db.query(Item).filter(Item.id.in_(item_ids)).all()
+        if not items:
+            return []
+
+        return [
+            {
+                "item_id": item.id,
+                "inward_id": inward_item.inward_id,
+                "name": item.name,
+                "type": item.type,
+                "gst": item.gst,
+                "rate": item.rate,
+                "unit": item.unit,
+                "cost_rate": item.cost_rate,
+            }
+            for item in items
+            for inward_item in inward_items
+            if inward_item.item_id == item.id
+        ]
 
 
 inward = CRUDInward(Inward)

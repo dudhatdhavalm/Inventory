@@ -74,9 +74,7 @@ def fetch_by_supplier_id(
 )
 def add_inward(*, inward_in: InwardCreate, db: Session = Depends(dependencies.get_db)):
     try:
-        inward = crud.inward.create(
-            db=db, obj_in=inward_in, items=inward_in.items
-        )
+        inward = crud.inward.create(db=db, obj_in=inward_in, items=inward_in.items)
         return inward
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -89,29 +87,19 @@ def add_inward(*, inward_in: InwardCreate, db: Session = Depends(dependencies.ge
     dependencies=[Depends(PermissionChecker(permission="update_inward"))],
 )
 def update_inward(
-    *,
-    request: Request,
     inward_id: int,
     inward_in: InwardUpdate,
-    db: Session = Depends(dependencies.get_db),
-) -> dict:
-    """
-    Update Inward Detail
-    """
-    current_user: User = get_current_user(request)
-    modified_by = current_user.id
-
-    inward_record = crud.inward.get_by_id(db=db, id=inward_in.id)
-
-    if not inward_record:
-        raise HTTPException(status_code=404, detail=f"Inward not found with this id")
-
-    result = crud.inward.get_by_id(db=db, id=inward_id)
-    inward = crud.inward.update(
-        db=db, db_obj=result, obj_in=inward_in, modified_by=modified_by
-    )
-
-    return inward
+    db: Session = Depends(dependencies.get_db)
+):
+    try:
+        inward = crud.inward.update(
+            db=db, inward_id=inward_id, obj_in=inward_in, items=inward_in.items
+        )
+        return inward
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.delete(
@@ -134,3 +122,18 @@ def delete_inward(*, inward_id: int, db: Session = Depends(dependencies.get_db))
     db.commit()
 
     return "Inward Deleted successfully"
+
+
+@router.get("/{supplier_id}/items", status_code=200)
+def fetch_items_by_supplier_id(
+    *,
+    supplier_id: int,
+    db: Session = Depends(dependencies.get_db),
+):
+    items = crud.inward.get_items_by_supplier_id(db=db, supplier_id=supplier_id)
+    if not items:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No items found for supplier with ID {supplier_id}",
+        )
+    return {"items": items}

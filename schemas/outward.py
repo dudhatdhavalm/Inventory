@@ -33,7 +33,7 @@ class OutwardCreate(OutwardBase):
 
 
 class OutwardUpdate(OutwardBase):
-    id: int
+    items: List[OutwardItemBase]
 
 
 class OutwardDelete(OutwardBase):

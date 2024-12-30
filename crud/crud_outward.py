@@ -11,13 +11,25 @@ ModelType = TypeVar("ModelType", bound=Base)
 
 class CRUDOutward(CRUDBase[Outward, OutwardCreate, OutwardUpdate]):
     def get(self, db: Session, *, skip: int = 0, limit: int = 100) -> List[Outward]:
-        return (
+        outwards = (
             db.query(Outward)
             .filter(Outward.status == 1)
             .offset(skip)
             .limit(limit)
             .all()
         )
+
+        outward_ids = [outward.id for outward in outwards]
+        outward_items = (
+            db.query(OutwardItem).filter(OutwardItem.outward_id.in_(outward_ids)).all()
+        )
+
+        for outward in outwards:
+            outward.items = [
+                item for item in outward_items if item.outward_id == outward.id
+            ]
+
+        return outwards
 
     def get_by_id(self, db: Session, *, id: int) -> Optional[Outward]:
         return db.query(Outward).filter(Outward.id == id, Outward.status == 1).first()

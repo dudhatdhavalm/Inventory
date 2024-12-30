@@ -7,15 +7,31 @@ from models.inward import Inward, InwardItem
 from models.item import Item
 from db.base_class import Base
 from schemas.inward import InwardCreate, InwardUpdate
+from sqlalchemy.orm import joinedload
 
 ModelType = TypeVar("ModelType", bound=Base)
 
 
 class CRUDInward(CRUDBase[Inward, InwardCreate, InwardUpdate]):
     def get(self, db: Session, *, skip: int = 0, limit: int = 100) -> List[Inward]:
-        return (
+        # Fetch the Inward records
+        inwards = (
             db.query(Inward).filter(Inward.status == 1).offset(skip).limit(limit).all()
         )
+
+        # Fetch related InwardItems based on the inward_ids
+        inward_ids = [inward.id for inward in inwards]
+        inward_items = (
+            db.query(InwardItem).filter(InwardItem.inward_id.in_(inward_ids)).all()
+        )
+
+        # Associate InwardItems with Inward records
+        for inward in inwards:
+            inward.items = [
+                item for item in inward_items if item.inward_id == inward.id
+            ]
+
+        return inwards
 
     def get_by_id(self, db: Session, *, id: int) -> Optional[Inward]:
         return db.query(Inward).filter(Inward.id == id, Inward.status == 1).first()

@@ -41,7 +41,7 @@ def fetch_inward_id(
     """
     Fetch inward by id
     """
-    inward = crud.inward.get_by_id(db=db, inward_id=inward_id)
+    inward = crud.inward.delete_by_id(db=db, inward_id=inward_id)
     if not inward:
         raise HTTPException(
             status_code=404, detail=f"Inward with ID {inward_id} not found"
@@ -109,7 +109,7 @@ def delete_inward(*, inward_id: int, db: Session = Depends(dependencies.get_db))
     """
     Delete inward
     """
-    result = crud.inward.get_by_id(db=db, id=inward_id)
+    result = crud.inward.delete_by_id(db=db, id=inward_id)
     if not result:
         raise HTTPException(
             status_code=404,

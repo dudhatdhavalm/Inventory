@@ -1,9 +1,4 @@
-from sqlalchemy import (
-    Column,
-    ForeignKey,
-    Integer,
-    String,DateTime
-)
+from sqlalchemy import Column, ForeignKey, Integer, String, DateTime
 from db.base_class import Base
 
 
@@ -18,15 +13,14 @@ class Outward(Base):
         ForeignKey("supplier.id"),
         nullable=True,
     )
-    supplier_name = Column(String,nullable=True)
     grand_total = Column(Integer)
 
 
 class OutwardItem(Base):
-    id = Column(Integer,primary_key=True)
-    item_id = Column(Integer,ForeignKey("item.id"),nullable=False)
-    outward_id = Column(Integer,ForeignKey("outward.id"),nullable=False)
-    name = Column(String,nullable=False)
+    id = Column(Integer, primary_key=True)
+    item_id = Column(Integer, ForeignKey("item.id"), nullable=False)
+    outward_id = Column(Integer, ForeignKey("outward.id"), nullable=False)
+    name = Column(String, nullable=False)
     quantity = Column(Integer, nullable=False)
     unit = Column(String, nullable=False)
     rate = Column(Integer, nullable=False)

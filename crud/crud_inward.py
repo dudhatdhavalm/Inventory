@@ -41,13 +41,17 @@ class CRUDInward(CRUDBase[Inward, InwardCreate, InwardUpdate]):
 
         return inwards_with_supplier
 
-    def get_by_id(self, db: Session, *, inward_id: int) -> dict:
-        inward = db.query(Inward).filter(Inward.id == inward_id, Inward.status == 1).first()
+    def delete_by_id(self, db: Session, *, inward_id: int) -> dict:
+        inward = (
+            db.query(Inward).filter(Inward.id == inward_id, Inward.status == 1).first()
+        )
 
         if not inward:
-            return {"detail": "Inward not found"} 
+            return {"detail": "Inward not found"}
 
-        supplier = db.query(Supplier.name).filter(Supplier.id == inward.supplier_id).first()
+        supplier = (
+            db.query(Supplier.name).filter(Supplier.id == inward.supplier_id).first()
+        )
 
         inward.supplier_name = supplier[0] if supplier else None
 
@@ -59,16 +63,16 @@ class CRUDInward(CRUDBase[Inward, InwardCreate, InwardUpdate]):
         )
 
         if not inward_items:
-            return {"detail": "No inward items found"}  
+            return {"detail": "No inward items found"}
         inward.items = [
             {
                 "item_id": inward_item.item_id,
                 "quantity": inward_item.quantity,
-                "name": item.name,    
-                "unit": item.unit,    
-                "rate": item.rate,     
+                "name": item.name,
+                "unit": item.unit,
+                "rate": item.rate,
             }
-            for inward_item, item in inward_items  
+            for inward_item, item in inward_items
         ]
 
         return {
@@ -77,10 +81,9 @@ class CRUDInward(CRUDBase[Inward, InwardCreate, InwardUpdate]):
             "challan_no": inward.challan_no,
             "gst_no": inward.gst_no,
             "date": inward.date,
-            "supplier_name": inward.supplier_name,  
-            "items": inward.items,  
+            "supplier_name": inward.supplier_name,
+            "items": inward.items,
         }
-
 
     def get_by_supplier_id(self, db: Session, *, id: int) -> Optional[Inward]:
         return (
@@ -106,7 +109,6 @@ class CRUDInward(CRUDBase[Inward, InwardCreate, InwardUpdate]):
             challan_no=obj_in.challan_no,
             gst_no=obj_in.gst_no,
             supplier_id=obj_in.supplier_id,
-            supplier_name=obj_in.supplier_name
         )
 
         db.add(inward_data)
@@ -156,8 +158,6 @@ class CRUDInward(CRUDBase[Inward, InwardCreate, InwardUpdate]):
         inward_data.challan_no = obj_in.challan_no
         inward_data.gst_no = obj_in.gst_no
         inward_data.supplier_id = obj_in.supplier_id
-        inward_data.supplier_name = obj_in.supplier_name
-
 
         db.commit()
         db.refresh(inward_data)

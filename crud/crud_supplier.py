@@ -7,6 +7,8 @@ from crud.base import CRUDBase
 from models.bank_detail import BankDetail
 from models.contact_detail import ContactDetail
 from models.supplier import Supplier
+from models.inward import Inward, InwardItem
+from models.outward import Outward, OutwardItem
 from db.base_class import Base
 from schemas.supplier import SupplierCreate, SupplierUpdate
 ModelType = TypeVar("ModelType", bound=Base)
@@ -81,6 +83,128 @@ class CRUDSupplier(CRUDBase[Supplier, SupplierCreate, SupplierUpdate]):
         return super().update(db, db_obj=db_obj, obj_in=update_data, modified_by=modified_by)
 
 
+    def get_all_supplier_items(self, db: Session, *, skip: int = 0, limit: int = 100) -> List[dict]:
+            # Query to fetch suppliers and their items (without aggregation)
+            inward_results = (
+                db.query(Supplier.name, InwardItem.name, InwardItem.quantity)
+                .join(
+                    Inward, Supplier.id == Inward.supplier_id, isouter=True
+                )  # LEFT JOIN for Inward
+                .join(
+                    InwardItem, Inward.id == InwardItem.inward_id, isouter=True
+                )  # LEFT JOIN for InwardItem
+                .filter(Supplier.status == 1)
+                .offset(skip)
+                .limit(limit)
+                .all()
+            )
+
+            # Fetch outward items and quantities
+            outward_results = (
+                db.query(Supplier.name, OutwardItem.name, OutwardItem.quantity)
+                .join(
+                    Outward, Supplier.id == Outward.supplier_id, isouter=True
+                )  # LEFT JOIN for Outward
+                .join(
+                    OutwardItem, Outward.id == OutwardItem.outward_id, isouter=True
+                )  # LEFT JOIN for OutwardItem
+                .filter(Supplier.status == 1)
+                .offset(skip)
+                .limit(limit)
+                .all()
+            )
+
+            # Debugging: print raw query results to check what is being fetched
+            print("Inward Query Results:", inward_results)
+            print("Outward Query Results:", outward_results)
+
+            # Dictionary to store suppliers and their inward and outward items
+            suppliers_with_items = {}
+
+            # Process inward items
+            for supplier_name, item_name, item_quantity in inward_results:
+                print(
+                    f"Processing Inward - Supplier: {supplier_name}, Item: {item_name}, Quantity: {item_quantity}"
+                )
+
+                if supplier_name not in suppliers_with_items:
+                    suppliers_with_items[supplier_name] = {
+                        "inward_items": [],
+                        "outward_items": [],
+                        "inward_stock": 0,  # Initialize inward total quantity
+                        "outward_stock": 0,  # Initialize outward total quantity
+                    }
+
+                # Validate and add inward items for the supplier
+                if (
+                    item_name
+                    and isinstance(item_quantity, (int, float))
+                    and item_quantity >= 0
+                ):
+                    suppliers_with_items[supplier_name]["inward_items"].append(
+                        {"name": item_name, "quantity": item_quantity}
+                    )
+
+                    # Add the item quantity to the inward total
+                    suppliers_with_items[supplier_name]["inward_stock"] += item_quantity
+                else:
+                    print(
+                        f"Invalid inward item quantity for {supplier_name} - Item: {item_name}, Quantity: {item_quantity}"
+                    )
+
+            # Process outward items
+            for supplier_name, item_name, item_quantity in outward_results:
+                print(
+                    f"Processing Outward - Supplier: {supplier_name}, Item: {item_name}, Quantity: {item_quantity}"
+                )
+
+                if supplier_name not in suppliers_with_items:
+                    suppliers_with_items[supplier_name] = {
+                        "inward_items": [],
+                        "outward_items": [],
+                        "inward_stock": 0,  # Initialize inward total quantity
+                        "outward_stock": 0,  # Initialize outward total quantity
+                    }
+
+                # Validate and add outward items for the supplier
+                if (
+                    item_name
+                    and isinstance(item_quantity, (int, float))
+                    and item_quantity >= 0
+                ):
+                    suppliers_with_items[supplier_name]["outward_items"].append(
+                        {"name": item_name, "quantity": item_quantity}
+                    )
+
+                    # Add the item quantity to the outward total
+                    suppliers_with_items[supplier_name]["outward_stock"] += item_quantity
+                else:
+                    print(
+                        f"Invalid outward item quantity for {supplier_name} - Item: {item_name}, Quantity: {item_quantity}"
+                    )
+
+            # Preparing the final response
+            formatted_results = []
+            for supplier_name, supplier_data in suppliers_with_items.items():
+                formatted_results.append(
+                    {
+                        "supplier_name": supplier_name,
+                        "inward_items": (
+                            supplier_data["inward_items"]
+                            if supplier_data["inward_items"]
+                            else None
+                        ),
+                        "inward_stock": supplier_data["inward_stock"],
+                        "outward_items": (
+                            supplier_data["outward_items"]
+                            if supplier_data["outward_items"]
+                            else None
+                        ),
+                        "outward_stock": supplier_data["outward_stock"],
+                    }
+                )
+
+            return formatted_results
 
 
 supplier = CRUDSupplier(Supplier)

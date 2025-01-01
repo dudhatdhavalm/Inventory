@@ -18,6 +18,7 @@ class Outward(Base):
         ForeignKey("supplier.id"),
         nullable=True,
     )
+    supplier_name = Column(String,nullable=True)
     grand_total = Column(Integer)
 
 

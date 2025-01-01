@@ -10,6 +10,7 @@ class InwardBase(BaseModel):
     challan_no: Optional[str] = None
     gst_no: Optional[str] = None
     supplier_id: Optional[int] = None
+    supplier_name: Optional[str] = None
 
     class Config:
         orm_mode = True

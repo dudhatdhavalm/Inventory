@@ -106,6 +106,7 @@ class CRUDInward(CRUDBase[Inward, InwardCreate, InwardUpdate]):
             challan_no=obj_in.challan_no,
             gst_no=obj_in.gst_no,
             supplier_id=obj_in.supplier_id,
+            supplier_name=obj_in.supplier_name
         )
 
         db.add(inward_data)
@@ -155,6 +156,8 @@ class CRUDInward(CRUDBase[Inward, InwardCreate, InwardUpdate]):
         inward_data.challan_no = obj_in.challan_no
         inward_data.gst_no = obj_in.gst_no
         inward_data.supplier_id = obj_in.supplier_id
+        inward_data.supplier_name = obj_in.supplier_name
+
 
         db.commit()
         db.refresh(inward_data)

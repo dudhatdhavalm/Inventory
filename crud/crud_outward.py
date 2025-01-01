@@ -111,6 +111,7 @@ class CRUDOutward(CRUDBase[Outward, OutwardCreate, OutwardUpdate]):
             challan_no=obj_in.challan_no,
             gst_no=obj_in.gst_no,
             supplier_id=obj_in.supplier_id,
+            supplier_name=obj_in.supplier_name
         )
 
         db.add(outward_data)
@@ -161,6 +162,7 @@ class CRUDOutward(CRUDBase[Outward, OutwardCreate, OutwardUpdate]):
         outward_data.challan_no = obj_in.challan_no
         outward_data.gst_no = obj_in.gst_no
         outward_data.supplier_id = obj_in.supplier_id
+        outward_data.supplier_name = obj_in.supplier_name
 
         db.commit()
         db.refresh(outward_data)

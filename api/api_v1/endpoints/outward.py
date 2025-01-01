@@ -41,7 +41,7 @@ def fetch_outward_id(
     """
     Fetch outward by id
     """
-    outward = crud.outward.get_by_id(db=db, id=outward_id)
+    outward = crud.outward.get_by_id(db=db, outward_id=outward_id)
     if not outward:
         raise HTTPException(
             status_code=404, detail=f"Outward with ID {outward_id} not found"

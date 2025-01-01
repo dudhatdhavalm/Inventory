@@ -3,6 +3,8 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from crud.base import CRUDBase
 from models.outward import Outward, OutwardItem
+from models.supplier import Supplier
+from models.item import Item
 from db.base_class import Base
 from schemas.outward import OutwardCreate, OutwardUpdate
 
@@ -11,28 +13,83 @@ ModelType = TypeVar("ModelType", bound=Base)
 
 class CRUDOutward(CRUDBase[Outward, OutwardCreate, OutwardUpdate]):
     def get(self, db: Session, *, skip: int = 0, limit: int = 100) -> List[Outward]:
+        # Fetch the Outward records along with Supplier information
         outwards = (
-            db.query(Outward)
+            db.query(Outward, Supplier.name.label("supplier_name"))
+            .join(
+                Supplier, Outward.supplier_id == Supplier.id, isouter=True
+            )  # Assuming 'supplier_id' is the foreign key
             .filter(Outward.status == 1)
             .offset(skip)
             .limit(limit)
             .all()
         )
 
-        outward_ids = [outward.id for outward in outwards]
+        # Extract Outward records and add supplier_name
+        outwards_with_supplier = []
+        for outward, name in outwards:
+            outward.supplier_name = name  # Add the supplier_name to the Outward object
+            outwards_with_supplier.append(outward)
+
+        # Fetch related OutwardItems based on the outward_ids
+        outward_ids = [outward.id for outward in outwards_with_supplier]
         outward_items = (
             db.query(OutwardItem).filter(OutwardItem.outward_id.in_(outward_ids)).all()
         )
 
-        for outward in outwards:
+        # Associate OutwardItems with Outward records
+        for outward in outwards_with_supplier:
             outward.items = [
                 item for item in outward_items if item.outward_id == outward.id
             ]
 
-        return outwards
+        return outwards_with_supplier
 
-    def get_by_id(self, db: Session, *, id: int) -> Optional[Outward]:
-        return db.query(Outward).filter(Outward.id == id, Outward.status == 1).first()
+    def get_by_id(self, db: Session, *, outward_id: int) -> Optional[Outward]:
+        outward = (
+            db.query(Outward)
+            .filter(Outward.id == outward_id, Outward.status == 1)
+            .first()
+        )
+
+        if not outward:
+            return {"detail": "outward not found"}
+
+        supplier = (
+            db.query(Supplier.name).filter(Supplier.id == outward.supplier_id).first()
+        )
+
+        outward.supplier_name = supplier[0] if supplier else None
+
+        outward_items = (
+            db.query(OutwardItem, Item)
+            .join(Item, Item.id == OutwardItem.item_id)
+            .filter(OutwardItem.outward_id == outward.id)
+            .all()
+        )
+
+        if not outward_items:
+            return {"detail": "No outward items found"}
+        outward.items = [
+            {
+                "item_id": outward_item.item_id,
+                "quantity": outward_item.quantity,
+                "name": item.name,
+                "unit": item.unit,
+                "rate": item.rate,
+            }
+            for outward_item, item in outward_items
+        ]
+
+        return {
+            "outward_id": outward.id,
+            "invoice_no": outward.invoice_no,
+            "challan_no": outward.challan_no,
+            "gst_no": outward.gst_no,
+            "date": outward.date,
+            "supplier_name": outward.supplier_name,
+            "items": outward.items,
+        }
 
     def get_by_supplier_id(self, db: Session, *, id: int) -> Optional[Outward]:
         return (

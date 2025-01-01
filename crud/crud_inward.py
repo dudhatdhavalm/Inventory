@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func, or_
 from crud.base import CRUDBase
 from models.inward import Inward, InwardItem
+from models.supplier import Supplier
 from models.item import Item
 from db.base_class import Base
 from schemas.inward import InwardCreate, InwardUpdate
@@ -14,27 +15,72 @@ ModelType = TypeVar("ModelType", bound=Base)
 
 class CRUDInward(CRUDBase[Inward, InwardCreate, InwardUpdate]):
     def get(self, db: Session, *, skip: int = 0, limit: int = 100) -> List[Inward]:
-        # Fetch the Inward records
         inwards = (
-            db.query(Inward).filter(Inward.status == 1).offset(skip).limit(limit).all()
+            db.query(Inward, Supplier.name.label("supplier_name"))
+            .join(Supplier, Inward.supplier_id == Supplier.id, isouter=True)
+            .filter(Inward.status == 1)
+            .offset(skip)
+            .limit(limit)
+            .all()
         )
 
-        # Fetch related InwardItems based on the inward_ids
-        inward_ids = [inward.id for inward in inwards]
+        inwards_with_supplier = []
+        for inward, name in inwards:
+            inward.supplier_name = name
+            inwards_with_supplier.append(inward)
+
+        inward_ids = [inward.id for inward in inwards_with_supplier]
         inward_items = (
             db.query(InwardItem).filter(InwardItem.inward_id.in_(inward_ids)).all()
         )
 
-        # Associate InwardItems with Inward records
-        for inward in inwards:
+        for inward in inwards_with_supplier:
             inward.items = [
                 item for item in inward_items if item.inward_id == inward.id
             ]
 
-        return inwards
+        return inwards_with_supplier
 
-    def get_by_id(self, db: Session, *, id: int) -> Optional[Inward]:
-        return db.query(Inward).filter(Inward.id == id, Inward.status == 1).first()
+    def get_by_id(self, db: Session, *, inward_id: int) -> dict:
+        inward = db.query(Inward).filter(Inward.id == inward_id, Inward.status == 1).first()
+
+        if not inward:
+            return {"detail": "Inward not found"} 
+
+        supplier = db.query(Supplier.name).filter(Supplier.id == inward.supplier_id).first()
+
+        inward.supplier_name = supplier[0] if supplier else None
+
+        inward_items = (
+            db.query(InwardItem, Item)
+            .join(Item, Item.id == InwardItem.item_id)
+            .filter(InwardItem.inward_id == inward.id)
+            .all()
+        )
+
+        if not inward_items:
+            return {"detail": "No inward items found"}  
+        inward.items = [
+            {
+                "item_id": inward_item.item_id,
+                "quantity": inward_item.quantity,
+                "name": item.name,    
+                "unit": item.unit,    
+                "rate": item.rate,     
+            }
+            for inward_item, item in inward_items  
+        ]
+
+        return {
+            "inward_id": inward.id,
+            "invoice_no": inward.invoice_no,
+            "challan_no": inward.challan_no,
+            "gst_no": inward.gst_no,
+            "date": inward.date,
+            "supplier_name": inward.supplier_name,  
+            "items": inward.items,  
+        }
+
 
     def get_by_supplier_id(self, db: Session, *, id: int) -> Optional[Inward]:
         return (

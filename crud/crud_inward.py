@@ -41,48 +41,21 @@ class CRUDInward(CRUDBase[Inward, InwardCreate, InwardUpdate]):
 
         return inwards_with_supplier
 
-    def delete_by_id(self, db: Session, *, inward_id: int) -> dict:
+    def delete_by_id(self, db: Session, *, inward_id: int):
         inward = (
             db.query(Inward).filter(Inward.id == inward_id, Inward.status == 1).first()
         )
+        print(f"Queried inward for ID {inward_id}: {inward}")
 
         if not inward:
             return {"detail": "Inward not found"}
 
-        supplier = (
-            db.query(Supplier.name).filter(Supplier.id == inward.supplier_id).first()
-        )
-
-        inward.supplier_name = supplier[0] if supplier else None
-
-        inward_items = (
-            db.query(InwardItem, Item)
-            .join(Item, Item.id == InwardItem.item_id)
-            .filter(InwardItem.inward_id == inward.id)
-            .all()
-        )
-
-        if not inward_items:
-            return {"detail": "No inward items found"}
-        inward.items = [
-            {
-                "item_id": inward_item.item_id,
-                "quantity": inward_item.quantity,
-                "name": item.name,
-                "unit": item.unit,
-                "rate": item.rate,
-            }
-            for inward_item, item in inward_items
-        ]
-
+        inward.status = 0
+        db.commit()
+        db.refresh(inward)
         return {
             "inward_id": inward.id,
-            "invoice_no": inward.invoice_no,
-            "challan_no": inward.challan_no,
-            "gst_no": inward.gst_no,
-            "date": inward.date,
-            "supplier_name": inward.supplier_name,
-            "items": inward.items,
+            "message": "Inward status updated to 0 (soft deleted)",
         }
 
     def get_by_supplier_id(self, db: Session, *, id: int) -> Optional[Inward]:

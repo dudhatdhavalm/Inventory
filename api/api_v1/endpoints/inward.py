@@ -41,7 +41,7 @@ def fetch_inward_id(
     """
     Fetch inward by id
     """
-    inward = crud.inward.delete_by_id(db=db, inward_id=inward_id)
+    inward = crud.inward.get(db=db, inward_id=inward_id)
     if not inward:
         raise HTTPException(
             status_code=404, detail=f"Inward with ID {inward_id} not found"
@@ -80,6 +80,20 @@ def add_inward(*, inward_in: InwardCreate, db: Session = Depends(dependencies.ge
         raise HTTPException(status_code=400, detail=str(e))
 
 
+@router.delete(
+    "/{inward_id}",
+    status_code=200,
+    dependencies=[Depends(PermissionChecker(permission="delete_inward"))],
+)
+def delete_inward(*, inward_id: int, db: Session = Depends(dependencies.get_db)):
+    result = crud.inward.delete_by_id(db=db, inward_id=inward_id)
+
+    if "detail" in result and result["detail"] == "Inward not found":
+        raise HTTPException(status_code=404, detail="Inward not found")
+
+    return result
+
+
 @router.put(
     "/{inward_id}",
     status_code=200,
@@ -98,28 +112,6 @@ def update_inward(
         raise e
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-
-
-@router.delete(
-    "/{inward_id}",
-    status_code=200,
-    dependencies=[Depends(PermissionChecker(permission="delete_inward"))],
-)
-def delete_inward(*, inward_id: int, db: Session = Depends(dependencies.get_db)):
-    """
-    Delete inward
-    """
-    result = crud.inward.delete_by_id(db=db, id=inward_id)
-    if not result:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Inward with ID {inward_id} not found",
-        )
-
-    result.status = 0
-    db.commit()
-
-    return "Inward Deleted successfully"
 
 
 @router.get("/{supplier_id}/items", status_code=200)

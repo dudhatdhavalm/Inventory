@@ -21,6 +21,7 @@ class InwardItemBase(BaseModel):
     quantity: int
     unit: str
     rate: int
+    total_price: Optional[int] = None 
 
     class Config:
         orm_mode = True

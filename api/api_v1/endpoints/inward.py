@@ -41,7 +41,7 @@ def fetch_inward_id(
     """
     Fetch inward by id
     """
-    inward = crud.inward.get(db=db, inward_id=inward_id)
+    inward = crud.inward.get_by_id(db=db, inward_id=inward_id)
     if not inward:
         raise HTTPException(
             status_code=404, detail=f"Inward with ID {inward_id} not found"

@@ -11,7 +11,8 @@ from .endpoints import (
     permission,
     roles,
     inward_return,
-    stock_detail
+    outward_return,
+    stock_detail,
 )
 
 route_v1 = APIRouter()
@@ -29,7 +30,12 @@ route_v1.include_router((inward.router), prefix="/inward", tags=["inward"])
 route_v1.include_router(
     (inward_return.router), prefix="/inward_return", tags=["inward_return"]
 )
+route_v1.include_router(
+    (outward_return.router), prefix="/outward_return", tags=["outward_return"]
+)
 route_v1.include_router((outward.router), prefix="/outward", tags=["outward"])
 route_v1.include_router((permission.router), prefix="/permission", tags=["permission"])
 route_v1.include_router((roles.router), prefix="/roles", tags=["roles"])
-route_v1.include_router((stock_detail.router), prefix="/stock_detail", tags=["stock_detail"])
+route_v1.include_router(
+    (stock_detail.router), prefix="/stock_detail", tags=["stock_detail"]
+)

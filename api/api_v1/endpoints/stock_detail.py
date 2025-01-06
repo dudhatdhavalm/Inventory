@@ -8,12 +8,13 @@ from schemas.stock_detail import StockDetailsCreate
 router = APIRouter()
 
 
-@router.post("/create", status_code=201)
-def create_stock_details(
-    obj_in: StockDetailsCreate, db: Session = Depends(dependencies.get_db)
-):
+@router.post("", status_code=201)
+def create_stock_details(db: Session = Depends(dependencies.get_db)):
+    """
+    Create stock details for all items.
+    """
     try:
-        stock_details = crud.stock_details.create(db=db, obj_in=obj_in)
+        stock_details = crud.stock_details.create(db=db)
         return stock_details
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

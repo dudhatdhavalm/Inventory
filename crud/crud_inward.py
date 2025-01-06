@@ -19,7 +19,7 @@ class CRUDInward(CRUDBase[Inward, InwardCreate, InwardUpdate]):
         db: Session,
         *,
         inward_id: Optional[int] = None,
-    ) -> Optional[Inward]:
+    ) -> List[Inward]:
         query = (
             db.query(Inward, Supplier.name.label("supplier_name"))
             .join(Supplier, Inward.supplier_id == Supplier.id)  # Inner join
@@ -30,12 +30,37 @@ class CRUDInward(CRUDBase[Inward, InwardCreate, InwardUpdate]):
         if inward_id:
             query = query.filter(Inward.id == inward_id)
 
-        inward_result = query.first()
+        inwards_results = query.all()
 
-        if not inward_result:
+        if not inwards_results:
+            return []
+
+        inwards_with_supplier = []
+        for inward, supplier_name in inwards_results:
+            inward.supplier_name = supplier_name
+
+            # Fetch related items for the inward
+            inward_items = (
+                db.query(InwardItem).filter(InwardItem.inward_id == inward.id).all()
+            )
+            inward.items = inward_items
+
+            inwards_with_supplier.append(inward)
+
+        return inwards_with_supplier
+
+    def get_by_id(self, db: Session, inward_id: int) -> Optional[Inward]:
+        query = (
+            db.query(Inward, Supplier.name.label("supplier_name"))
+            .join(Supplier, Inward.supplier_id == Supplier.id)  # Inner join
+            .filter(Inward.status == 1, Inward.id == inward_id)
+            .first()  # Fetch first result, as we're querying by id
+        )
+
+        if not query:
             return None
 
-        inward, supplier_name = inward_result
+        inward, supplier_name = query
         inward.supplier_name = supplier_name
 
         # Fetch related items for the inward

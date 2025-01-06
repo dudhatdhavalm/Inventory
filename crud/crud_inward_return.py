@@ -26,14 +26,7 @@ class CRUDInwardReturn:
         # Update the quantity in InwardItem table
         inward_item.quantity -= obj_in.quantity
         db.add(inward_item)
-        print(
-            {
-                "item_id": inward_item.item_id,
-                "inward_id": inward_item.inward_id,
-                "quantity": obj_in.quantity,
-                "return_reason": obj_in.return_reason,
-            }
-        )
+
         inward_return = InwardReturn(
             item_id=inward_item.item_id,
             inward_id=inward_item.inward_id,

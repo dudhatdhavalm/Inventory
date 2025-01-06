@@ -4,7 +4,10 @@ from .crud_bank_detail import bank_detail
 from .crud_contact_detail import contact_detail
 from .crud_item import item
 from .crud_inward import inward
+from .crud_inward_return import inward_return
 from .crud_outward import outward
+from .crud_outward_return import outward_return
 from .crud_permission import permission
 from .crud_roles import roles
 from .crud_role_permission import role_permission
+from .crud_stock_detail import stock_details

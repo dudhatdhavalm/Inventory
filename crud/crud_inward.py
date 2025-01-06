@@ -14,32 +14,37 @@ ModelType = TypeVar("ModelType", bound=Base)
 
 
 class CRUDInward(CRUDBase[Inward, InwardCreate, InwardUpdate]):
-    def get(self, db: Session, *, skip: int = 0, limit: int = 100) -> List[Inward]:
-        inwards = (
+    def get(
+        self,
+        db: Session,
+        *,
+        inward_id: Optional[int] = None,
+    ) -> Optional[Inward]:
+        query = (
             db.query(Inward, Supplier.name.label("supplier_name"))
-            .join(Supplier, Inward.supplier_id == Supplier.id, isouter=True)
+            .join(Supplier, Inward.supplier_id == Supplier.id)  # Inner join
             .filter(Inward.status == 1)
-            .offset(skip)
-            .limit(limit)
-            .all()
         )
 
-        inwards_with_supplier = []
-        for inward, name in inwards:
-            inward.supplier_name = name
-            inwards_with_supplier.append(inward)
+        # Filter by inward_id if provided
+        if inward_id:
+            query = query.filter(Inward.id == inward_id)
 
-        inward_ids = [inward.id for inward in inwards_with_supplier]
+        inward_result = query.first()
+
+        if not inward_result:
+            return None
+
+        inward, supplier_name = inward_result
+        inward.supplier_name = supplier_name
+
+        # Fetch related items for the inward
         inward_items = (
-            db.query(InwardItem).filter(InwardItem.inward_id.in_(inward_ids)).all()
+            db.query(InwardItem).filter(InwardItem.inward_id == inward.id).all()
         )
+        inward.items = inward_items
 
-        for inward in inwards_with_supplier:
-            inward.items = [
-                item for item in inward_items if item.inward_id == inward.id
-            ]
-
-        return inwards_with_supplier
+        return inward
 
     def delete_by_id(self, db: Session, *, inward_id: int):
         inward = (

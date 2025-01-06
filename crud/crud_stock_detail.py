@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from models.stock import StockDetails
-from schemas.stock_detail import StockDetailsCreate
+# from schemas.stock_detail import StockDetailsCreate
 from sqlalchemy import func
 from models.item import Item
 from models.inward import InwardItem

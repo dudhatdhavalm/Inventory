@@ -8,7 +8,7 @@ from schemas.stock_detail import StockDetailsCreate
 router = APIRouter()
 
 
-@router.post("", status_code=201)
+@router.get("", status_code=201)
 def create_stock_details(db: Session = Depends(dependencies.get_db)):
     """
     Create stock details for all items.
